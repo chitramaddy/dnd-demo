@@ -1,14 +1,16 @@
-import React, { Component } from "react"; 
+import React, { Component } from "react";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import initialData from "./initial-data";
 import Column from "./Column.js";
+import PQueue from "p-queue";
+//import moment from "moment";
 import styled from "styled-components";
 const Container = styled.div`
   display: flex;
 `;
 
-class InnerList extends React.PureComponent{
-   render() {
+class InnerList extends React.PureComponent {
+  render() {
     const { taskMap, column, index } = this.props;
     const tasks = column.taskIds.map((taskId) => taskMap[taskId]);
     return <Column column={column} tasks={tasks} index={index} />;
@@ -110,7 +112,16 @@ class App extends Component {
     this.setState(newState);
   };
 
+  queuePromise = () => {
+    const queue = new PQueue({ concurrency: 5 });
+    queue.add(() => fetch("https://sindresorhus.com"));
+    queue.add(() => fetch("https://sindresorhus.com"));
+    console.log("Done: sindresorhus.com");
+  };
+
   render() {
+    this.queuePromise();
+    //const time = moment.months();
     return (
       <DragDropContext
         onDragStart={this.onDragStart}
@@ -121,7 +132,7 @@ class App extends Component {
           direction="horizontal"
           type="column"
         >
-          {provided => (
+          {(provided) => (
             <Container {...provided.droppableProps} ref={provided.innerRef}>
               {this.state.columnOrder.map((columnId, index) => {
                 const column = this.state.columns[columnId];
@@ -132,7 +143,7 @@ class App extends Component {
                     column={column}
                     taskMap={this.state.tasks}
                     index={index}
-                  />
+                  ></InnerList>
                 );
               })}
               {provided.placeholder}
